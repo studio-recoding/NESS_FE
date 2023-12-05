@@ -64,7 +64,7 @@ const ChatBot: React.FC = () => {
       </ChatContainer>
       <InputArea>
         <Input type="text" value={userInput} onChange={handleInputChange} />
-        <Button onClick={handleSubmit}>Send</Button>
+        <Button onClick={handleSubmit}>전송</Button>
       </InputArea>
     </Container>
   );
@@ -98,15 +98,27 @@ const InputArea = styled.div`
   margin: auto;
   height: 100px;
   background-color: white;
+  display: flex;
 `;
 
 const Input = styled.input`
+  display: flex;
   padding: 10px;
   margin-right: 10px;
   width: 70%;
+  align-items: flex-start;
   border: none;
 `;
 
 const Button = styled.button`
-  padding: 10px;
+  border: none;
+  display: flex;
+  background-color: #fef01b;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 30px;
+  border-radius: 3px;
+  margin-top: 10px;
+  margin-left: 20px;
 `;
