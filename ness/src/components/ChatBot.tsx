@@ -12,6 +12,7 @@ const ChatBot: React.FC = () => {
     chatMessages.messages as ChatMessage[]
   );
   const [userInput, setUserInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUserInput(event.target.value);
@@ -26,7 +27,7 @@ const ChatBot: React.FC = () => {
       content: userInput,
     };
     setMessages(messages.concat(newUserMessage));
-
+    setIsLoading(true);
     try {
       const response = await fetch("http://localhost:8000/chat/", {
         method: "POST",
@@ -47,7 +48,7 @@ const ChatBot: React.FC = () => {
     } catch (error) {
       console.error("ChatGPT API Error:", error);
     }
-
+    setIsLoading(false);
     setUserInput(""); // 입력 필드 초기화
   };
 
@@ -59,6 +60,7 @@ const ChatBot: React.FC = () => {
             {msg.content}
           </Message>
         ))}
+        {isLoading && <p>로딩중...</p>}
       </ChatContainer>
       <InputArea>
         <Input type="text" value={userInput} onChange={handleInputChange} />

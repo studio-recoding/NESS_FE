@@ -25,20 +25,23 @@ class UserMessage(BaseModel):
 
 
 @app.post("/chat/")
+    
 async def chat_with_gpt(user_message: UserMessage):
     try:
+        print(OPENAI_API_KEY)
         response = requests.post(
-            "https://api.openai.com/v1/engines/gpt-3.5-turbo/completions",
+            "https://api.openai.com/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {OPENAI_API_KEY}"
             },
             json={
                 "model": "gpt-3.5-turbo",
-                "prompt": user_message.message,
-                "max_tokens": 150
+                "messages": [{"role": "user", "content": user_message.message}]
             }
         )
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error: {e}")
+    raise HTTPException(status_code=500, detail=str(e))
+
