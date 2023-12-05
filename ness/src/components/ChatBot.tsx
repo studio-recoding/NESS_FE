@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import chatMessages from "../messages.json"; // messages.json 파일 임포트
 
@@ -12,7 +12,21 @@ const ChatBot: React.FC = () => {
     chatMessages.messages as ChatMessage[]
   );
   const [userInput, setUserInput] = useState("");
+  const [websocket, setWebsocket] = useState<WebSocket | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:8000/ws/chat");
+    ws.onmessage = (event) => {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { sender: "bot", content: event.data },
+      ]);
+    };
+    setWebsocket(ws);
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUserInput(event.target.value);
@@ -26,34 +40,20 @@ const ChatBot: React.FC = () => {
       sender: "user",
       content: userInput,
     };
-    setMessages(messages.concat(newUserMessage));
+
     setIsLoading(true);
-    try {
-      const response = await fetch("http://localhost:8000/chat/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: userInput }),
-      });
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-      const data = await response.json();
-      const botReply: ChatMessage = {
-        sender: "bot",
-        content: data.choices[0].message.content,
-      };
-      setMessages((prevMessages) => [...prevMessages, botReply]);
-    } catch (error) {
-      console.error("ChatGPT API Error:", error);
+    if (websocket && websocket.readyState === WebSocket.OPEN) {
+      setMessages([...messages, { sender: "user", content: userInput }]);
+      websocket.send(userInput);
+      setUserInput(""); // 입력 필드 초기화
+    } else {
+      console.error("WebSocket is not connected.");
     }
     setIsLoading(false);
-    setUserInput(""); // 입력 필드 초기화
   };
 
   return (
-    <div>
+    <Container>
       <ChatContainer>
         {messages.map((msg, index) => (
           <Message key={index} sender={msg.sender}>
@@ -66,11 +66,21 @@ const ChatBot: React.FC = () => {
         <Input type="text" value={userInput} onChange={handleInputChange} />
         <Button onClick={handleSubmit}>Send</Button>
       </InputArea>
-    </div>
+    </Container>
   );
 };
 
 export default ChatBot;
+
+const Container = styled.div`
+  width: 400px;
+  height: 600px;
+  display: flex;
+  margin: auto;
+  flex-direction: column;
+  position: relative;
+  background-color: #9bbbd4;
+`;
 
 const ChatContainer = styled.div`
   // 채팅 컨테이너 스타일
@@ -82,12 +92,19 @@ const Message = styled.div<{ sender: string }>`
 
 const InputArea = styled.div`
   margin-top: 20px;
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  margin: auto;
+  height: 100px;
+  background-color: white;
 `;
 
 const Input = styled.input`
   padding: 10px;
   margin-right: 10px;
   width: 70%;
+  border: none;
 `;
 
 const Button = styled.button`

@@ -1,47 +1,37 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from starlette.websockets import WebSocketState  # WebSocketState 임포트 추가
 from pydantic import BaseModel
-import requests
-from dotenv import load_dotenv
+from openai import AsyncOpenAI
 import os
+from dotenv import load_dotenv
 
-load_dotenv()  # 환경 변수 로드
-
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+load_dotenv()
 
 app = FastAPI()
-
-# CORS 미들웨어 추가
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"], # React 애플리케이션이 실행되는 주소
-    allow_credentials=True,
-    allow_methods=["*"],  # 모든 HTTP 메서드 허용
-    allow_headers=["*"],  # 모든 HTTP 헤더 허용
-)
 
 class UserMessage(BaseModel):
     message: str
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY 환경 변수가 설정되어 있지 않습니다.")
 
-@app.post("/chat/")
-    
-async def chat_with_gpt(user_message: UserMessage):
+@app.websocket("/ws/chat")
+async def websocket_chat(websocket: WebSocket):
+    await websocket.accept()
+    client = AsyncOpenAI(api_key=OPENAI_API_KEY)
     try:
-        print(OPENAI_API_KEY)
-        response = requests.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {OPENAI_API_KEY}"
-            },
-            json={
-                "model": "gpt-3.5-turbo",
-                "messages": [{"role": "user", "content": user_message.message}]
-            }
-        )
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException as e:
+        while True:
+            data = await websocket.receive_text()
+            stream = await client.chat.completions.create(
+                model="gpt-3.5-turbo",  # 모델 지정
+                messages=[{"role": "user", "content": data}],
+                stream=True  # 스트리밍 활성화
+            )
+            async for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    await websocket.send_text(chunk.choices[0].delta.content)
+    except WebSocketDisconnect:
+        print("WebSocket disconnected")
+    except Exception as e:
         print(f"Error: {e}")
-    raise HTTPException(status_code=500, detail=str(e))
-
