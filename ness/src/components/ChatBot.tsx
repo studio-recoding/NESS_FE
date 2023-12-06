@@ -11,6 +11,7 @@ const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>(
     chatMessages.messages as ChatMessage[]
   );
+  const [currentMessage, setCurrentMessage] = useState("");
   const [userInput, setUserInput] = useState("");
   const [websocket, setWebsocket] = useState<WebSocket | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +29,7 @@ const ChatBot: React.FC = () => {
     };
   }, []);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setUserInput(event.target.value);
   };
 
@@ -63,7 +64,7 @@ const ChatBot: React.FC = () => {
         {isLoading && <p>로딩중...</p>}
       </ChatContainer>
       <InputArea>
-        <Input type="text" value={userInput} onChange={handleInputChange} />
+        <Input value={userInput} onChange={handleInputChange}></Input>
         <Button onClick={handleSubmit}>전송</Button>
       </InputArea>
     </Container>
@@ -83,11 +84,31 @@ const Container = styled.div`
 `;
 
 const ChatContainer = styled.div`
-  // 채팅 컨테이너 스타일
+  display: flex;
+  flex-direction: column;
 `;
 
 const Message = styled.div<{ sender: string }>`
-  // 메시지 스타일 (sender에 따라 다름)
+  padding: 10px;
+  margin: 5px;
+  max-width: 70%;
+  display: flex;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  word-break: break-word; // 긴 텍스트가 있을 경우 줄바꿈
+  ${(props) =>
+    props.sender === "user"
+      ? `
+    align-self: flex-end;
+    background-color: yellow; 
+    color: black;
+  `
+      : `
+    align-self: flex-start;
+    background-color: white; 
+    color: black; 
+  `}
 `;
 
 const InputArea = styled.div`
@@ -101,7 +122,7 @@ const InputArea = styled.div`
   display: flex;
 `;
 
-const Input = styled.input`
+const Input = styled.textarea`
   display: flex;
   padding: 10px;
   margin-right: 10px;

@@ -24,13 +24,16 @@ async def websocket_chat(websocket: WebSocket):
         while True:
             data = await websocket.receive_text()
             stream = await client.chat.completions.create(
-                model="gpt-3.5-turbo",  # 모델 지정
+                model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": data}],
-                stream=True  # 스트리밍 활성화
+                stream=True
             )
             async for chunk in stream:
                 if chunk.choices[0].delta.content:
                     await websocket.send_text(chunk.choices[0].delta.content)
+
+            # OpenAI API의 응답이 완료된 후 메시지 끝 식별자 전송
+            await websocket.send_text("메시지_끝_식별자")
     except WebSocketDisconnect:
         print("WebSocket disconnected")
     except Exception as e:
