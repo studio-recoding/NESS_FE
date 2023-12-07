@@ -93,12 +93,14 @@ const Container = styled.div`
   flex-direction: column;
   position: relative;
   background-color: #9bbbd4;
+  overflow: auto;
 `;
 
 const ChatContainer = styled.div`
   display: flex;
   flex-direction: column;
   overflow: auto;
+  margin-bottom: 100px;
 `;
 
 const Message = styled.div<{ sender: string }>`
