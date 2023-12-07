@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import chatMessages from "../messages.json"; // messages.json 파일 임포트
 
@@ -11,23 +11,35 @@ const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>(
     chatMessages.messages as ChatMessage[]
   );
-  const [currentMessage, setCurrentMessage] = useState("");
+  const [tempMessage, setTempMessage] = useState("");
   const [userInput, setUserInput] = useState("");
   const [websocket, setWebsocket] = useState<WebSocket | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const tempMessageRef = useRef("");
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:8000/ws/chat");
     ws.onmessage = (event) => {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: "bot", content: event.data },
-      ]);
+      if (event.data === "&!~") {
+        addTempMessageToMessages(tempMessageRef.current); // useRef를 사용
+        tempMessageRef.current = ""; // 참조를 통해 값 초기화
+        setTempMessage(""); // 상태 업데이트로 리렌더링 트리거
+      } else {
+        tempMessageRef.current += event.data; // 참조를 통해 값 업데이트
+        setTempMessage(tempMessageRef.current); // 상태 업데이트로 리렌더링 트리거
+      }
     };
     setWebsocket(ws);
     return () => {
       ws.close();
     };
   }, []);
+
+  const addTempMessageToMessages = (message: string) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { sender: "bot", content: message },
+    ]);
+  };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setUserInput(event.target.value);
@@ -61,7 +73,7 @@ const ChatBot: React.FC = () => {
             {msg.content}
           </Message>
         ))}
-        {isLoading && <p>로딩중...</p>}
+        {tempMessage && <Message sender={"bot"}>{tempMessage}</Message>}
       </ChatContainer>
       <InputArea>
         <Input value={userInput} onChange={handleInputChange}></Input>
@@ -86,6 +98,7 @@ const Container = styled.div`
 const ChatContainer = styled.div`
   display: flex;
   flex-direction: column;
+  overflow: auto;
 `;
 
 const Message = styled.div<{ sender: string }>`

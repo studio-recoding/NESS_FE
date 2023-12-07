@@ -1,14 +1,5 @@
 {
   "messages": [
-    { "sender": "bot", "content": "안녕하세요, 무엇을 도와드릴까요?" },
-    {
-      "sender": "user",
-      "content": "dkdkdkkdkdkdkdkdkkdkkdkdk아아아아아아아 ㅏ배고파배고파란어란머이라ㅓㅁㄴ이ㅏ"
-    },
-    {
-      "sender": "bot",
-      "content": "응어쩌라골어ㅣㅏ너리ㅏ먼이ㅏ러ㅣㅏㄴ어리ㅏ머니아ㅓ리ㅏㅁㄴ어ㅣ라ㅓㅁ니아러ㅣㅏㄴㅁ어ㅣ라ㅓㄴㅁ"
-    },
-    { "sender": "bot", "content": "웅" }
+    { "sender": "bot", "content": "안녕하세요, 무엇을 도와드릴까요?" }
   ]
 }

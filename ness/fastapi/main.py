@@ -33,7 +33,7 @@ async def websocket_chat(websocket: WebSocket):
                     await websocket.send_text(chunk.choices[0].delta.content)
 
             # OpenAI API의 응답이 완료된 후 메시지 끝 식별자 전송
-            await websocket.send_text("메시지_끝_식별자")
+            await websocket.send_text("&!~")
     except WebSocketDisconnect:
         print("WebSocket disconnected")
     except Exception as e:
