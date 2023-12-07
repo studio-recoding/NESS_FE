@@ -25,7 +25,7 @@ async def websocket_chat(websocket: WebSocket):
             data = await websocket.receive_text()
             stream = await client.chat.completions.create(
                 model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": data + "이거 with, when, what에 맞춰서 json으로 날려줘."}],
+                messages=[{"role": "user", "content": data + "이거 정리해서 { with: "", when: "", what: "" }에 맞춰서 json으로만 보내줘."}],
                 stream=True
             )
             async for chunk in stream:

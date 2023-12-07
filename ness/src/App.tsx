@@ -1,6 +1,7 @@
 import React from "react";
 import ChatBot from "./components/ChatBot";
 import styled from "styled-components";
+import TimeTable from "./components/TimeTable";
 
 const App: React.FC = () => {
   return (
